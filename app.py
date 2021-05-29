@@ -21,7 +21,8 @@ app.title = 'COVID-19 Statistic Dashboard'
 
 
 #read dataset
-data = pd.read_csv('https://covid.ourworldindata.org/data/owid-covid-data.csv')
+read = pd.read_csv('https://covid.ourworldindata.org/data/owid-covid-data.csv')
+data = read.copy()
 country = data.location.unique()    #list country
 
 yesterday = date.today()-timedelta(days=1)
