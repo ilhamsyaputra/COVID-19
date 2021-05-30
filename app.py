@@ -22,12 +22,21 @@ app.title = 'COVID-19 Statistic Dashboard'
 
 #read dataset
 read = pd.read_csv('https://covid.ourworldindata.org/data/owid-covid-data.csv')
+# read = pd.read_csv('owid-covid-data.csv')
 data = read.copy()
 country = data.location.unique()    #list country
 
 yesterday = date.today()-timedelta(days=1)
-today_data = data[data['date'] == str(yesterday)]
+if data[data['date'] == str(yesterday)]['new_cases'].sum() == 0:
+    yesterday2 = date.today() - timedelta(days=2)
+    today_data = data[data['date'] == str(yesterday2)]
+else:
+    yesterday2 = date.today() - timedelta(days=1)
+    today_data = data[data['date'] == str(yesterday2)]
+
 today_data.dropna(subset=['continent'], inplace=True)
+
+configg = {'displayModeBar': False}
 
 #get region stats
 asia = today_data[today_data['continent'] == 'Asia']
@@ -55,44 +64,98 @@ region_stats = px.bar(x=bar_x,
 region_stats.update_layout(title_text='Regional COVID-19 Total Cases',
                            legend_title='Region',
                            )
-region_stats.update_yaxes(title_text='')
-region_stats.update_xaxes(title_text='')
+region_stats.update_yaxes(title_text='', fixedrange=True)
+region_stats.update_xaxes(title_text='', fixedrange=True)
 
 asia_data = data[data['continent'] == 'Asia'].groupby('date')['total_cases'].sum()
 asia_stats = px.area(x=asia_data.index, y=asia_data)
 asia_stats.update_layout(title_text='Asia')
-asia_stats.update_yaxes(title_text='')
-asia_stats.update_xaxes(title_text='')
+asia_stats.update_yaxes(title_text='', fixedrange=True)
+asia_stats.update_xaxes(title_text='', fixedrange=True)
 
 eu_data = data[data['continent'] == 'Europe'].groupby('date')['total_cases'].sum()
 eu_stats = px.area(x=eu_data.index, y=eu_data)
 eu_stats.update_layout(title_text='Europe')
-eu_stats.update_yaxes(title_text='')
-eu_stats.update_xaxes(title_text='')
+eu_stats.update_yaxes(title_text='', fixedrange=True)
+eu_stats.update_xaxes(title_text='', fixedrange=True)
 
 na_data = data[data['continent'] == 'North America'].groupby('date')['total_cases'].sum()
 na_stats = px.area(x=na_data.index, y=na_data)
 na_stats.update_layout(title_text='North America')
-na_stats.update_yaxes(title_text='')
-na_stats.update_xaxes(title_text='')
+na_stats.update_yaxes(title_text='', fixedrange=True)
+na_stats.update_xaxes(title_text='', fixedrange=True)
 
 sa_data = data[data['continent'] == 'South America'].groupby('date')['total_cases'].sum()
 sa_stats = px.area(x=sa_data.index, y=sa_data)
 sa_stats.update_layout(title_text='South America')
-sa_stats.update_yaxes(title_text='')
-sa_stats.update_xaxes(title_text='')
+sa_stats.update_yaxes(title_text='', fixedrange=True)
+sa_stats.update_xaxes(title_text='', fixedrange=True)
 
 afr_data = data[data['continent'] == 'Africa'].groupby('date')['total_cases'].sum()
 afr_stats = px.area(x=afr_data.index, y=afr_data)
 afr_stats.update_layout(title_text='Africa')
-afr_stats.update_yaxes(title_text='')
-afr_stats.update_xaxes(title_text='')
+afr_stats.update_yaxes(title_text='', fixedrange=True)
+afr_stats.update_xaxes(title_text='', fixedrange=True)
 
 oce_data = data[data['continent'] == 'Oceania'].groupby('date')['total_cases'].sum()
 oce_stats = px.area(x=oce_data.index, y=oce_data)
 oce_stats.update_layout(title_text='Oceania')
-oce_stats.update_yaxes(title_text='')
-oce_stats.update_xaxes(title_text='')
+oce_stats.update_yaxes(title_text='', fixedrange=True)
+oce_stats.update_xaxes(title_text='', fixedrange=True)
+
+#highest total cases by country
+total_by_country = today_data.groupby('location')['total_cases'].sum()
+country_total = total_by_country.sort_values(ascending=False)
+highest_country_total = country_total.head(10)
+
+highest_country_total_stats = px.bar(x=highest_country_total.sort_values(),
+                                     y=highest_country_total.sort_values().index,
+                                     orientation='h')
+highest_country_total_stats.update_layout(title_text='Highest Number of Total Cases by Country'
+                                          )
+highest_country_total_stats.update_yaxes(title_text='', fixedrange=True)
+highest_country_total_stats.update_xaxes(title_text='', fixedrange=True)
+
+
+#highest total deaths by country
+deaths_by_country = today_data.groupby('location')['total_deaths'].sum()
+country_total_deaths = deaths_by_country.sort_values(ascending=False)
+highest_deaths_country = country_total_deaths.head(10)
+
+highest_country_total_deaths = px.bar(x=highest_deaths_country.sort_values(),
+                                      y=highest_deaths_country.sort_values().index,
+                                      orientation='h')
+highest_country_total_deaths.update_layout(title_text='Highest Number of Total Deaths by Country'
+                                          )
+highest_country_total_deaths.update_yaxes(title_text='', fixedrange=True)
+highest_country_total_deaths.update_xaxes(title_text='', fixedrange=True)
+
+
+#highest single day cases by country
+new_by_country = today_data[today_data['date'] == str(yesterday2)].sort_values(by=['new_cases'], ascending=False)
+highest_new_by_country = new_by_country.head(10)
+# print(top_new_by_country['location'], top_new_by_country['new_cases'])
+
+highest_country_day_cases = px.bar(x=highest_new_by_country['new_cases'].sort_values(),
+                                   y=highest_new_by_country['location'].sort_values(),
+                                   orientation='h')
+highest_country_day_cases.update_layout(title_text='Highest Number of Single Day Cases by Country'
+                                          )
+highest_country_day_cases.update_yaxes(title_text='', fixedrange=True)
+highest_country_day_cases.update_xaxes(title_text='', fixedrange=True)
+
+#highest single day deaths by country
+deaths_by_country = today_data[today_data['date'] == str(yesterday2)].sort_values(by=['new_deaths'], ascending=False)
+highest_deaths_by_country = deaths_by_country.head(10)
+# print(top_new_by_country['location'], top_new_by_country['new_cases'])
+highest_country_day_deaths = px.bar(x=highest_deaths_by_country['new_deaths'].sort_values(),
+                                    y=highest_deaths_by_country['location'].sort_values(),
+                                    orientation='h')
+highest_country_day_deaths.update_layout(title_text='Highest Number of Single Day Deaths by Country'
+                                          )
+highest_country_day_deaths.update_yaxes(title_text='', fixedrange=True)
+highest_country_day_deaths.update_xaxes(title_text='', fixedrange=True)
+
 
 
 fig = go.Figure(data=go.Choropleth(locations=today_data['iso_code'],
@@ -129,7 +192,7 @@ total_case = [
         [
             html.H3(format(int(today_data['total_cases'].sum()), ","), className="card-title"),
             html.P(
-                'Global Confirmed Total Cases as of ' + str(yesterday),
+                'Global Confirmed Total Cases as of ' + str(yesterday2),
                 className="card-text",
             ),
         ]
@@ -141,7 +204,7 @@ today_new_case = [
         [
             html.H3(format(int(today_data['new_cases'].sum()), ","), className="card-title"),
             html.P(
-                'Global Confirmed New Cases for ' + str(yesterday),
+                'Global Confirmed New Cases for ' + str(yesterday2),
                 className="card-text",
             ),
         ]
@@ -153,7 +216,7 @@ total_death = [
         [
             html.H3(format(int(today_data['total_deaths'].sum()), ","), className="card-title"),
             html.P(
-                'Global Confirmed Deaths as of ' + str(yesterday),
+                'Global Confirmed Deaths as of ' + str(yesterday2),
                 className="card-text",
             ),
         ]
@@ -206,38 +269,55 @@ app.layout = html.Div([
             multi=True
         ),
     ], style={'width': '48%', 'float': 'right', 'display': 'inline-block'}),
-    dcc.Graph(id='grafik'),
-    dcc.Graph(id='global-map',
+    dcc.Graph(id='grafik', config=configg),
+    dcc.Graph(id='global-map', config=configg,
               figure=fig),
     html.Div([
         dbc.Row([
             dbc.Col([
-                dcc.Graph(id='region', figure=region_stats)
+                dcc.Graph(id='highest-total-cases', figure=highest_country_total_stats,
+                          config=configg)
+            ]),
+            dbc.Col([
+                dcc.Graph(id='highest-total-deaths', figure=highest_country_total_deaths, config=configg)
+            ])
+        ]),
+        dbc.Row([
+            dbc.Col([
+               dcc.Graph(id='highest-day-cases', figure=highest_country_day_cases, config=configg)
+            ]),
+            dbc.Col([
+                dcc.Graph(id='highest-death-cases', figure=highest_country_day_deaths, config=configg)
+            ])
+        ]),
+        dbc.Row([
+            dbc.Col([
+                dcc.Graph(id='region', figure=region_stats, config=configg)
             ]),
         ]),
 
         dbc.Row([
             dbc.Col([
-                dcc.Graph(figure=asia_stats)
+                dcc.Graph(figure=asia_stats, config=configg)
             ]),
             dbc.Col([
-                dcc.Graph(figure=eu_stats)
+                dcc.Graph(figure=eu_stats, config=configg)
             ])
         ]),
         dbc.Row([
             dbc.Col([
-                dcc.Graph(figure=na_stats)
+                dcc.Graph(figure=na_stats, config=configg)
             ]),
             dbc.Col([
-                dcc.Graph(figure=sa_stats)
+                dcc.Graph(figure=sa_stats, config=configg)
             ])
         ]),
         dbc.Row([
             dbc.Col([
-                dcc.Graph(figure=afr_stats)
+                dcc.Graph(figure=afr_stats, config=configg)
             ]),
             dbc.Col([
-                dcc.Graph(figure=oce_stats)
+                dcc.Graph(figure=oce_stats, config=configg)
             ])
         ]),
         html.Hr(),
@@ -271,8 +351,8 @@ def update_graph(negara, metric):
                                  'total_cases':'Total Cases',
                                  'date':'Date'},
                     )
-    line_chart.update_yaxes(title_text='')
-    line_chart.update_xaxes(title_text='')
+    line_chart.update_yaxes(title_text='', fixedrange=True)
+    line_chart.update_xaxes(title_text='', fixedrange=True)
     return line_chart
 
 
